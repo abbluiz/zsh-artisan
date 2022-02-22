@@ -8,7 +8,6 @@
 
 # Uses "docker compose" instead of "docker-compose" if latter is not found. 
 if ! [ -x "$(command -v docker-compose)" ]; then
-    shopt -s expand_aliases
     alias docker-compose='docker compose'
 fi
 
