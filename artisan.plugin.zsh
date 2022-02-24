@@ -20,24 +20,25 @@ function artisan() {
     fi
 
     local laravel_path=`dirname $artisan_path`
-    local docker_compose_config_path=`find $laravel_path -maxdepth 1 -regex ".*/docker-compose.ya?ml" | head -n1`
+    local docker_compose_config_path=`find -L $laravel_path -maxdepth 1 -regex ".*/docker-compose.ya?ml" | head -n1`
+    local docker_compose_project_path=`dirname $docker_compose_config_path`
     local docker_compose_service_name=''
 
     if [ "$docker_compose_config_path" != '' ]; then
-        docker_compose_service_name=`docker-compose ps --services 2>/dev/null | grep 'app\|php\|api\|workspace\|laravel\.test\|webhost' | head -n1`
+        docker_compose_service_name=`docker compose --project-directory $docker_compose_project_path ps --services 2>/dev/null | grep 'app\|php\|api\|workspace\|laravel\.test\|webhost' | head -n1`
     fi
 
     local artisan_start_time=`date +%s`
 
     if [ "$docker_compose_service_name" != '' ]; then
         if [ -t 1 ]; then
-            docker-compose exec $docker_compose_service_name php artisan $*
+            docker compose --project-directory "$docker_compose_project_path" exec $docker_compose_service_name php artisan $*
         else
             # The command is not being run in a TTY (e.g. it's being called by the completion handler below)
-            docker-compose exec -T $docker_compose_service_name php artisan $*
-        fi
-    else
-        php $artisan_path $*
+            docker compose --project-directory "$docker_compose_project_path" exec -T $docker_compose_service_name php artisan $*
+        fi 
+#    else
+#       php $artisan_path $*
     fi
 
     local artisan_exit_status=$? # Store the exit status so we can return it later
